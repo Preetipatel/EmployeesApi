@@ -26,14 +26,6 @@ namespace EmployeesApi.Area.V1.Controllers
         [HttpPost]
         public async Task<ActionResult<EmployeeEntity>> AddEmployeeAsync([FromBody] EmployeeEntity employee)
         {
-           /* if (employee == null)
-            {
-                return BadRequest(new { status = "error", message = "Invalid input. The request body cannot be empty." });
-            }
-            if(_employeeProvider.IsEmployeeExists(employee))
-            {
-                return BadRequest(new { status = "error", message = "An employee with same firstname, lastname, emial already exists." });
-            }*/
             EmployeeEntity newEmployee;
             try
             {
@@ -85,6 +77,13 @@ namespace EmployeesApi.Area.V1.Controllers
             {
                 return StatusCode(500, new { status = "error", message = "An internal server error occurred." });
             }
+        }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<EmployeeEntity>>> SearchEmployeeByName([FromQuery] string searchText)
+        {
+            var result = await _employeeProvider.SearchAsync(searchText);
+            return Ok(result);
         }
     }
 }

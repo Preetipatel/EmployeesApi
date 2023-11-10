@@ -72,6 +72,20 @@ namespace EmployeesApi.Provider
             await _employeeDbContext.SaveChangesAsync();
         }
 
+        public async Task<IEnumerable<EmployeeEntity>> SearchAsync(string searchText)
+        {
+            var query = _employeeDbContext.Employees.AsQueryable();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                return await query.AsNoTracking().ToListAsync();
+            }
+            var result = await query.Where(e => string.Equals(e.FirstName, searchText, StringComparison.InvariantCultureIgnoreCase)
+                                       || string.Equals(e.LastName, searchText, StringComparison.InvariantCultureIgnoreCase)).ToListAsync();
+
+            return result;
+        }
+
         private static void BasicValidation(EmployeeEntity employee)
         {
             if (employee == null)

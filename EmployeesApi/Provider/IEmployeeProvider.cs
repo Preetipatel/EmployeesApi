@@ -16,6 +16,8 @@ namespace EmployeesApi.Provider
         //public Task<ActionResult<EmployeeEntity>> UpdateEmployeeAsync(EmployeeEntity employee);
         public Task DeleteEmployeeById(int id);
 
+        public Task<IEnumerable<EmployeeEntity>> SearchAsync(string searchText);
+
         public bool IsEmployeeExists(EmployeeEntity employee);
     }
 }
