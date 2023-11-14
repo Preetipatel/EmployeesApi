@@ -1,5 +1,7 @@
-﻿using EmployeesApi.Domain;
+﻿using Employees.Contracts;
+using EmployeesApi.Domain;
 using EmployeesApi.Persistence;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmployeesApi.Provider
@@ -7,22 +9,29 @@ namespace EmployeesApi.Provider
     public class EmployeeProvider : IEmployeeProvider
     {
         private readonly EmployeeDbContext _employeeDbContext;
+        private readonly IMapper _mapper;
         private const int MAX_AGE = 65;
         private const int MIN_AGE = 18;
-        public EmployeeProvider(EmployeeDbContext employeeDbContext)
+
+        public EmployeeProvider(
+            EmployeeDbContext employeeDbContext,
+            IMapper mapper)
         {
             _employeeDbContext = employeeDbContext;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<EmployeeEntity>> GetAllEmployeesAsync()
+        public async Task<IEnumerable<EmployeeResponse>> GetAllEmployeesAsync()
         {
-            var employees = await _employeeDbContext.Employees.AsNoTracking().ToListAsync();
-            return employees;
+            var employees = await _employeeDbContext.Employees.Include(x => x.Address).AsNoTracking().ToListAsync();
+            var employeeResponse = _mapper.Map<IEnumerable<EmployeeResponse>>(employees);
+            return employeeResponse;
         }
 
-        //Ignores the id provded in payload and uses the db generated id
-        public async Task<EmployeeEntity> AddEmployeeAsync(EmployeeEntity employee)
-        {
+         public async Task<EmployeeResponse> AddEmployeeAsync(AddEmployeeRequest employeeRequest)
+         {
+            var employee = _mapper.Map<EmployeeEntity>(employeeRequest);
+            employee.Id = Guid.NewGuid();
             BasicValidation(employee);
 
             if (IsEmployeeExists(employee))
@@ -31,66 +40,83 @@ namespace EmployeesApi.Provider
             }
             await _employeeDbContext.Employees.AddAsync(employee);
             await _employeeDbContext.SaveChangesAsync();
-            return employee;
-        }
 
-        public async Task<EmployeeEntity> UpdateEmployeeAsync(EmployeeEntity employee)
+            var response = _mapper.Map<EmployeeResponse>(employee);
+            return response;
+         }
+
+        /*
+         * Updates employee fields
+         * Checks the duplicate value for firstname, lastname email before performing update
+         */
+        public async Task<EmployeeResponse> UpdateEmployeeAsync(EmployeeResponse employee)
         {
-            BasicValidation(employee);
+            
+            var existingEmployee = await _employeeDbContext.Employees
+                                        .Include(e => e.Address)
+                                        .FirstOrDefaultAsync(emp => emp.Id == employee.Id);
 
-            var existingEmployee = await _employeeDbContext.Employees.FirstOrDefaultAsync(emp => emp.Id == employee.Id);
             if (existingEmployee == null)
             {
                 throw new InvalidOperationException($"Employee with Id {employee.Id} not found");
             }
+
+            var updatedEmployee = _mapper.Map<EmployeeEntity>(employee);
+            BasicValidation(updatedEmployee);
+
             if (!string.Equals(existingEmployee.FirstName, employee.FirstName)
                 || !string.Equals(existingEmployee.LastName, employee.LastName)
                 || !string.Equals(existingEmployee.Email, employee.Email))
             {
-                if (IsEmployeeExists(employee))
+                if (IsEmployeeExists(updatedEmployee))
                 {
                     throw new InvalidOperationException("An employee with same firstname, lastname and email already exists. ");
                 }
             }
-            existingEmployee.FirstName = employee.FirstName;
-            existingEmployee.LastName = employee.LastName;
-            existingEmployee.Email = employee.Email;
-            existingEmployee.Age = employee.Age;
+
+            existingEmployee.FirstName = updatedEmployee.FirstName;
+            existingEmployee.LastName = updatedEmployee.LastName;
+            existingEmployee.Email = updatedEmployee.Email;
+            existingEmployee.Age = updatedEmployee.Age;
+            existingEmployee.Address = updatedEmployee.Address;
 
             await _employeeDbContext.SaveChangesAsync();
-            return existingEmployee;
+            var response = _mapper.Map<EmployeeResponse>(existingEmployee);
+            return response;
         }
 
-        public async Task DeleteEmployeeById(int id)
+        public async Task DeleteEmployeeById(Guid id)
         {
-            var existingEntity = await _employeeDbContext.Employees.FirstOrDefaultAsync(emp => emp.Id == id);
+            var existingEntity = await _employeeDbContext.Employees
+                                       .Include(e =>e.Address)
+                                       .FirstOrDefaultAsync(emp => emp.Id == id);
+
             if (existingEntity == null)
             {
                 throw new InvalidOperationException($"Employee with {id} not found");
             }
+
             _employeeDbContext.Remove(existingEntity);
             await _employeeDbContext.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<EmployeeEntity>> SearchAsync(string searchText)
+        public async Task<IEnumerable<EmployeeResponse>> SearchAsync(string searchText)
         {
             var query = _employeeDbContext.Employees.AsQueryable();
+            
+            searchText = searchText.ToLower();
+            var employees = await query.Where(e => e.FirstName.ToLower().Contains(searchText)
+                                            || e.LastName.ToLower().Contains(searchText))
+                                   .ToListAsync();
 
-            if (string.IsNullOrEmpty(searchText))
-            {
-                return await query.AsNoTracking().ToListAsync();
-            }
-            var result = await query.Where(e => string.Equals(e.FirstName, searchText, StringComparison.InvariantCultureIgnoreCase)
-                                       || string.Equals(e.LastName, searchText, StringComparison.InvariantCultureIgnoreCase)).ToListAsync();
-
-            return result;
+            return _mapper.Map<IEnumerable<EmployeeResponse>>(employees);
         }
 
         private static void BasicValidation(EmployeeEntity employee)
         {
             if (employee == null)
             {
-                throw new InvalidOperationException($"Employee with Id {employee.Id} not found");
+                throw new InvalidOperationException($"Employee can not be null");
             }
             if(string.IsNullOrWhiteSpace(employee.FirstName))
             {
@@ -110,7 +136,7 @@ namespace EmployeesApi.Provider
             }
         }    
 
-        public bool IsEmployeeExists(EmployeeEntity employee)
+        private bool IsEmployeeExists(EmployeeEntity employee)
         {
             return _employeeDbContext.Employees
                                         .Any(emp =>

@@ -5,7 +5,9 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmployeesApi", "EmployeesApi.csproj", "{9D501C05-A2A6-4DA4-BEA0-EB0ECEFCFF7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeesApi.Test", "..\EmployeesApi.Test\EmployeesApi.Test.csproj", "{30353D06-08F8-4FBF-9750-D8A29DC9DFDE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmployeesApi.Test", "..\EmployeesApi.Test\EmployeesApi.Test.csproj", "{30353D06-08F8-4FBF-9750-D8A29DC9DFDE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Employees.Contracts", "..\Employees.Contracts\Employees.Contracts.csproj", "{8AC3957C-7B54-4CC1-946B-D5C4FC535A39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{30353D06-08F8-4FBF-9750-D8A29DC9DFDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30353D06-08F8-4FBF-9750-D8A29DC9DFDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30353D06-08F8-4FBF-9750-D8A29DC9DFDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AC3957C-7B54-4CC1-946B-D5C4FC535A39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AC3957C-7B54-4CC1-946B-D5C4FC535A39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AC3957C-7B54-4CC1-946B-D5C4FC535A39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AC3957C-7B54-4CC1-946B-D5C4FC535A39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,23 +1,17 @@
-﻿using EmployeesApi.Domain;
-using Microsoft.AspNetCore.Mvc;
+﻿using Employees.Contracts;
 
 namespace EmployeesApi.Provider
 {
     public interface IEmployeeProvider
     {
-        public Task<IEnumerable<EmployeeEntity>> GetAllEmployeesAsync();
+        public Task<IEnumerable<EmployeeResponse>> GetAllEmployeesAsync();
 
-        public Task<EmployeeEntity> AddEmployeeAsync(EmployeeEntity employee);
+        public Task<EmployeeResponse> AddEmployeeAsync(AddEmployeeRequest employeeRequest);
 
-        //public Task<ActionResult<EmployeeEntity>> AddEmployeeAsync(EmployeeEntity employee);
+        public Task<EmployeeResponse> UpdateEmployeeAsync(EmployeeResponse employee);
 
-         public Task<EmployeeEntity> UpdateEmployeeAsync(EmployeeEntity employee);
+        public Task DeleteEmployeeById(Guid id);
 
-        //public Task<ActionResult<EmployeeEntity>> UpdateEmployeeAsync(EmployeeEntity employee);
-        public Task DeleteEmployeeById(int id);
-
-        public Task<IEnumerable<EmployeeEntity>> SearchAsync(string searchText);
-
-        public bool IsEmployeeExists(EmployeeEntity employee);
+        public Task<IEnumerable<EmployeeResponse>> SearchAsync(string searchText);
     }
 }

@@ -1,4 +1,5 @@
-﻿using EmployeesApi.Domain;
+﻿using Employees.Contracts;
+using EmployeesApi.Domain;
 using EmployeesApi.Provider;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,16 +18,16 @@ namespace EmployeesApi.Area.V1.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EmployeeEntity>>> GetEmployeesAsync()
+        public async Task<ActionResult<IEnumerable<EmployeeResponse>>> GetEmployeesAsync()
         {
             var employees = await _employeeProvider.GetAllEmployeesAsync();
             return Ok(employees);
         }
 
         [HttpPost]
-        public async Task<ActionResult<EmployeeEntity>> AddEmployeeAsync([FromBody] EmployeeEntity employee)
+        public async Task<ActionResult<EmployeeResponse>> AddEmployeeAsync([FromBody] AddEmployeeRequest employee)
         {
-            EmployeeEntity newEmployee;
+            EmployeeResponse newEmployee;
             try
             {
                newEmployee = await _employeeProvider.AddEmployeeAsync(employee);
@@ -43,7 +44,7 @@ namespace EmployeesApi.Area.V1.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult<EmployeeEntity>> UpdateEmployeeAsync([FromBody] EmployeeEntity employee)
+        public async Task<ActionResult<EmployeeResponse>> UpdateEmployeeAsync([FromBody] EmployeeResponse employee)
         {
             try
             {
@@ -62,7 +63,7 @@ namespace EmployeesApi.Area.V1.Controllers
         }
 
         [HttpDelete]
-        public async Task<ActionResult> DeleteEmployeeById(int id)
+        public async Task<ActionResult> DeleteEmployeeById(Guid id)
         {
             try
             {
@@ -80,7 +81,7 @@ namespace EmployeesApi.Area.V1.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<EmployeeEntity>>> SearchEmployeeByName([FromQuery] string searchText)
+        public async Task<ActionResult<IEnumerable<EmployeeResponse>>> SearchEmployeeByName([FromQuery] string searchText)
         {
             var result = await _employeeProvider.SearchAsync(searchText);
             return Ok(result);
